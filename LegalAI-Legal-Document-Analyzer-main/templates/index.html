@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LegalAI | Document Analyzer</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <a href="/" class="brand">
+          <span class="brand-icon">⚖</span>
+          <span>LegalAI</span>
+        </a>
+
+        <div class="sidebar-label">WORKSPACE</div>
+
+        <a href="/" class="nav-link active">
+          <span>▦</span> Document Analyzer
+        </a>
+
+        <div class="engine-card">
+          <div class="engine-title">
+            <span class="status-dot"></span> AI Engine
+          </div>
+          <p>Ready to analyze your document</p>
+          <small>Powered by Ollama</small>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="footer-icon">CS</div>
+          <div>
+            <strong>Academic Project</strong>
+            <small>24CS2506 · Experiment 5</small>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <div class="breadcrumb">Workspace / Analyzer</div>
+            <p>Intelligent legal document review</p>
+          </div>
+          <span class="status-badge">✓ Document Analysis</span>
+        </header>
+
+        <section class="page-heading">
+          <div>
+            <span class="eyebrow">LEGAL DOCUMENT INTELLIGENCE</span>
+            <h1>Understand your legal documents.</h1>
+            <p>
+              Upload a document or paste legal text to generate a structured
+              AI-powered analysis.
+            </p>
+          </div>
+          <div class="heading-icon">⚖</div>
+        </section>
+
+        {% if error %}
+        <div class="alert error-alert">
+          <strong>Analysis error</strong>
+          <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <div class="workspace-grid">
+          <section class="panel analyzer-panel">
+            <div class="panel-heading">
+              <div class="panel-icon blue-icon">↥</div>
+              <div>
+                <h2>Analyze a document</h2>
+                <p>Upload a file or enter legal text below.</p>
+              </div>
+            </div>
+
+            <form
+              action="{{ url_for('analyze') }}"
+              method="POST"
+              enctype="multipart/form-data"
+              id="analyzeForm"
+            >
+              <label class="field-label" for="document">
+                Upload legal document
+              </label>
+
+              <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">↥</div>
+                <strong>Choose a document to upload</strong>
+                <p>PDF, DOCX, TXT, RTF and MD files</p>
+
+                <input
+                  type="file"
+                  id="document"
+                  name="document"
+                  accept=".pdf,.docx,.txt,.rtf,.md"
+                />
+
+                <span class="file-name" id="fileName"> No file chosen </span>
+              </div>
+
+              <div class="or-divider">
+                <span>OR ENTER TEXT</span>
+              </div>
+
+              <label class="field-label" for="document_text">
+                Legal document content
+              </label>
+
+              <textarea
+                id="document_text"
+                name="document_text"
+                placeholder="Paste your contract, agreement, terms and conditions, or other legal text here..."
+                maxlength="30000"
+              ></textarea>
+
+              <div class="helper-text">
+                ⓘ Upload a supported file or paste text. Maximum file size: 10
+                MB. Text limit: 30,000 characters.
+              </div>
+
+              <button type="submit" class="analyze-button" id="analyzeButton">
+                <span>✦</span> Analyze Document
+              </button>
+            </form>
+          </section>
+
+          <aside class="info-column">
+            <div class="info-card">
+              <div class="panel-icon purple-icon">✦</div>
+              <h3>AI-powered insights</h3>
+              <p>
+                Organize important information from legal documents into a
+                readable report.
+              </p>
+            </div>
+
+            <div class="info-card">
+              <div class="panel-icon blue-icon">▤</div>
+              <h3>Structured analysis</h3>
+              <p>
+                Review summaries, parties, obligations, payment terms, dates and
+                clauses.
+              </p>
+            </div>
+
+            <div class="notice-card">
+              <strong>ⓘ Review AI-generated results</strong>
+              <p>
+                AI analysis may miss important legal details. Verify findings
+                with a qualified legal professional.
+              </p>
+            </div>
+          </aside>
+        </div>
+
+        {% if report %}
+        <section class="panel report-panel" id="report">
+          <div class="report-header">
+            <div class="panel-heading">
+              <div class="panel-icon green-icon">✓</div>
+              <div>
+                <h2>Analysis report</h2>
+                <p>Your document has been processed.</p>
+                {% if document_name %}
+                <p>File: {{ document_name }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <a href="{{ url_for('download_report') }}" class="download-button">
+              ↓ Download Report
+            </a>
+          </div>
+
+          <div class="report-meta">
+            <span>LEGALAI ANALYSIS</span>
+            <span>AI-generated informational review</span>
+          </div>
+
+          <pre class="report-content">{{ report }}</pre>
+
+          <div class="report-disclaimer">
+            <strong>Important:</strong>
+            This report is for informational purposes only and is not legal
+            advice. Consult a qualified legal professional before making legal
+            decisions.
+          </div>
+        </section>
+        {% endif %}
+
+        <footer class="page-footer">
+          <span>LegalAI · Automated Legal Document Analyzer</span>
+          <span>24CS2506 · Building Applications using GPT-4</span>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("document");
+      const fileName = document.getElementById("fileName");
+      const uploadZone = document.getElementById("uploadZone");
+      const form = document.getElementById("analyzeForm");
+      const analyzeButton = document.getElementById("analyzeButton");
+
+      const allowedExtensions = [".pdf", ".docx", ".txt", ".rtf", ".md"];
+
+      fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+
+        if (!file) {
+          fileName.textContent = "No file chosen";
+          uploadZone.classList.remove("file-selected");
+          return;
+        }
+
+        const supported = allowedExtensions.some((ext) =>
+          file.name.toLowerCase().endsWith(ext),
+        );
+
+        if (!supported) {
+          alert("Upload PDF, DOCX, TXT, RTF, or MD files only.");
+          this.value = "";
+          fileName.textContent = "No file chosen";
+          uploadZone.classList.remove("file-selected");
+          return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          alert("File size must not exceed 10 MB.");
+          this.value = "";
+          fileName.textContent = "No file chosen";
+          uploadZone.classList.remove("file-selected");
+          return;
+        }
+
+        fileName.textContent = file.name;
+        uploadZone.classList.add("file-selected");
+      });
+
+      form.addEventListener("submit", function (event) {
+        const text = document.getElementById("document_text").value.trim();
+        const file = fileInput.files[0];
+
+        if (!text && !file) {
+          event.preventDefault();
+          alert("Please upload a document or paste legal text.");
+          return;
+        }
+
+        analyzeButton.disabled = true;
+        analyzeButton.innerHTML =
+          '<span class="spinner"></span> Analyzing document...';
+      });
+
+      // Scroll to the report if Flask rendered one.
+      const report = document.getElementById("report");
+
+      if (report) {
+        window.addEventListener("load", function () {
+          report.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

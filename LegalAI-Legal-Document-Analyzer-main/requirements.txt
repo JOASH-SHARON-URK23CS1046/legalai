@@ -1,0 +1,5 @@
+Flask
+ollama
+pypdf
+python-docx
+striprtf
